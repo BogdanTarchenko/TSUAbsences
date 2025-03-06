@@ -31,7 +31,7 @@ final class RegistrationViewModel: ObservableObject {
                 return
             }
             
-            guard let groupNumber = groupNumber else {
+            if !Validation.validateGroupNumber(groupNumberText) {
                 errorMessage = ValidationError.invalidGroupNumber.message
                 return
             }
@@ -39,7 +39,7 @@ final class RegistrationViewModel: ObservableObject {
             let request = RegistrationRequest(
                 fullName: fullName,
                 email: email,
-                groupNumber: groupNumber,
+                groupNumber: Int(groupNumberText),
                 password: password
             )
             

@@ -4,7 +4,7 @@ struct UserProfile: Codable {
     let id: String
     let email: String
     let fullName: String
-    let group: GroupDTO
+    let group: GroupDTO?
     let role: UserRole
     let isBlocked: Bool
 }

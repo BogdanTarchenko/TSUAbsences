@@ -31,8 +31,10 @@ struct ProfileScreen: View {
                                     .foregroundColor(.gray)
                                 
                                 if case .student = profile.role {
-                                    Text("Группа \(profile.group.groupNumber)")
-                                        .foregroundColor(.gray)
+                                    if let groupNumber = profile.group?.groupNumber {
+                                        Text("Группа \(String(groupNumber))")
+                                            .foregroundColor(Color(hex: "346CB0"))
+                                    }
                                 }
                                 
                                 Text(profile.role.displayName)

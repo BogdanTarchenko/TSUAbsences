@@ -15,7 +15,7 @@ enum ValidationError: Error {
         case .passwordMismatch:
             return "Пароли не совпадают"
         case .invalidGroupNumber:
-            return "Неверный номер группы"
+            return "Введите корректный номер группы"
         }
     }
 }
@@ -31,5 +31,13 @@ struct Validation {
         if value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             throw ValidationError.emptyField(fieldName)
         }
+    }
+    
+    static func validateGroupNumber(_ value: String?) -> Bool {
+        guard let value = value?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !value.isEmpty else {
+            return true
+        }
+        return Int(value) != nil
     }
 } 

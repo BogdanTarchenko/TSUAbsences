@@ -15,7 +15,7 @@ final class EditProfileViewModel: ObservableObject {
         self.originalProfile = profile
         self.fullName = profile.fullName
         self.email = profile.email
-        self.groupNumberText = String(profile.group.groupNumber)
+        self.groupNumberText = profile.group.map { String($0.groupNumber) } ?? ""
         self.role = profile.role
     }
     
@@ -30,18 +30,18 @@ final class EditProfileViewModel: ObservableObject {
                 return false
             }
             
-            let groupNumber = Int(groupNumberText)
-            
-            if case .student = role, groupNumber == nil {
+            if !Validation.validateGroupNumber(groupNumberText) {
                 errorMessage = ValidationError.invalidGroupNumber.message
                 return false
             }
+            
+            let groupNumber = groupNumberText.isEmpty ? nil : Int(groupNumberText)
             
             isLoading = true
             
             let groupNumberForRequest: Int? = {
                 guard let number = groupNumber else { return nil }
-                return number != originalProfile.group.groupNumber ? number : nil
+                return number != originalProfile.group?.groupNumber ? number : nil
             }()
             
             let request = EditProfileRequest(

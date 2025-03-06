@@ -29,17 +29,22 @@ struct EditProfileScreen: View {
                         )
                         
                         if case .student = viewModel.role {
-                            Button(action: { showGroupSelection = true }) {
-                                HStack {
-                                    Text("Группа")
-                                        .foregroundColor(.gray)
-                                    Spacer()
-                                    Text(viewModel.groupNumberText)
-                                        .foregroundColor(Color(hex: "346CB0"))
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Группа")
+                                    .foregroundColor(.gray)
+                                
+                                Button(action: { showGroupSelection = true }) {
+                                    HStack {
+                                        Text(viewModel.groupNumberText.isEmpty ? "Выберите группу" : "Группа \(viewModel.groupNumberText)")
+                                            .foregroundColor(viewModel.groupNumberText.isEmpty ? .gray : Color(hex: "346CB0"))
+                                        Spacer()
+                                        Image(systemName: "chevron.right")
+                                            .foregroundColor(.gray)
+                                    }
+                                    .padding()
+                                    .background(Color.gray.opacity(0.1))
+                                    .cornerRadius(8)
                                 }
-                                .padding()
-                                .background(Color.gray.opacity(0.1))
-                                .cornerRadius(8)
                             }
                         }
                         

@@ -20,12 +20,8 @@ struct RegistrationScreen: View {
                     CustomTextField(placeholder: "Email", text: $viewModel.email, isRequired: true)
                     
                     VStack(alignment: .leading, spacing: 4) {
-                        HStack(spacing: 2) {
-                            Text("Группа")
-                                .foregroundColor(.gray)
-                            Text("*")
-                                .foregroundColor(.red)
-                        }
+                        Text("Группа")
+                            .foregroundColor(.gray)
                         
                         Button(action: {
                             showGroupSelection = true
