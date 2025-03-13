@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct MainScreen: View {
+    @StateObject private var viewModel = MainScreenViewModel()
+    
     var body: some View {
         TabView {
             Text("Главная")
@@ -9,6 +11,14 @@ struct MainScreen: View {
                     Text("Главная")
                 }
             
+            if case .teacher = viewModel.userRole {
+                RequestsScreen()
+                    .tabItem {
+                        Image(systemName: "doc.text.fill")
+                        Text("Заявки")
+                    }
+            }
+            
             ProfileScreen()
                 .tabItem {
                     Image(systemName: "person.fill")
@@ -16,5 +26,8 @@ struct MainScreen: View {
                 }
         }
         .accentColor(Color(hex: "346CB0"))
+        .onAppear {
+            viewModel.fetchUserRole()
+        }
     }
 } 
