@@ -9,7 +9,7 @@ struct UserProfile: Codable {
     let isBlocked: Bool
 }
 
-enum UserRole: String, Codable {
+enum UserRole: String, Codable, CaseIterable {
     case admin
     case deanery
     case teacher

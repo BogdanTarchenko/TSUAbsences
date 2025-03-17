@@ -35,9 +35,13 @@ class NetworkManager {
     func request<T: Encodable, R: Decodable>(
         endpoint: String,
         method: String = "POST",
-        body: T
+        body: T = EmptyRequest(),
+        queryItems: [URLQueryItem]? = nil
     ) async throws -> R {
-        guard let url = URL(string: baseURL + endpoint) else {
+        var urlComponents = URLComponents(string: baseURL + endpoint)
+        urlComponents?.queryItems = queryItems
+        
+        guard let url = urlComponents?.url else {
             throw NetworkError.invalidURL
         }
         
