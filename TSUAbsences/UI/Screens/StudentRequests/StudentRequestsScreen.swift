@@ -19,7 +19,6 @@ struct StudentRequestsScreen: View {
                                     viewModel.prepareForExtend(request: request)
                                 })
                                 .swipeActions {
-                                    // Показываем кнопку удаления только для заявок на рассмотрении
                                     if !request.isAccepted {
                                         Button(role: .destructive) {
                                             Task {
@@ -127,7 +126,6 @@ struct StudentRequestRow: View {
                     .foregroundColor(.secondary)
             }
             
-            // Отображаем информацию о продлениях с их статусом
             if !request.extendPassTimeRequests.isEmpty {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Запросы на продление:")
@@ -150,7 +148,6 @@ struct StudentRequestRow: View {
                 }
             }
             
-            // Кнопка продления
             if request.isAccepted {
                 Button {
                     onExtend(request)
@@ -223,7 +220,6 @@ struct CreateRequestView: View {
                                                 .frame(height: 100)
                                                 .cornerRadius(8)
                                             
-                                            // Показываем примерный размер файла
                                             if let size = viewModel.selectedImages[index].jpegData(compressionQuality: 0.5)?.count {
                                                 Text("\(formatFileSize(size))")
                                                     .font(.caption)
@@ -291,7 +287,6 @@ struct CreateRequestView: View {
         }
     }
     
-    // Функция для форматирования размера файла
     private func formatFileSize(_ size: Int) -> String {
         let formatter = ByteCountFormatter()
         formatter.allowedUnits = [.useKB, .useMB]
@@ -300,7 +295,6 @@ struct CreateRequestView: View {
     }
 }
 
-// Вспомогательный компонент для выбора изображений
 struct ImagePicker: UIViewControllerRepresentable {
     var onImagePicked: (UIImage?) -> Void
     

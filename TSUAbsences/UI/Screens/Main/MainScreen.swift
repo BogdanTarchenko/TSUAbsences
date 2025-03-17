@@ -5,12 +5,6 @@ struct MainScreen: View {
     
     var body: some View {
         TabView {
-            Text("Главная")
-                .tabItem {
-                    Image(systemName: "house.fill")
-                    Text("Главная")
-                }
-            
             if case .teacher = viewModel.userRole {
                 RequestsScreen()
                     .tabItem {
