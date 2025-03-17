@@ -69,7 +69,7 @@ struct RequestsFilterView: View {
     
     private var datesSection: some View {
         Section("Даты") {
-            DatePicker("Начальная дата", selection: dateStartBinding, displayedComponents: .date)
+            RussianDatePicker(selection: dateStartBinding, label: "Начальная дата", displayedComponents: .date)
                 .onChange(of: dateStart) { newValue in
                     if let newDate = newValue,
                        let endDate = dateEnd,
@@ -78,7 +78,7 @@ struct RequestsFilterView: View {
                     }
                 }
             
-            DatePicker("Конечная дата", selection: dateEndBinding, displayedComponents: .date)
+            RussianDatePicker(selection: dateEndBinding, label: "Конечная дата", displayedComponents: .date)
                 .onChange(of: dateEnd) { newValue in
                     if let newDate = newValue,
                        let startDate = dateStart,

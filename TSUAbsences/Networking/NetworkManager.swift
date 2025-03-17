@@ -28,7 +28,7 @@ enum NetworkError: LocalizedError {
 
 class NetworkManager {
     static let shared = NetworkManager()
-    private let baseURL = "http://83.222.26.250:8080"
+    let baseURL = "http://83.222.26.250:8080"
     
     private init() {}
     
@@ -59,38 +59,27 @@ class NetworkManager {
             request.httpBody = try encoder.encode(body)
         }
         
-        print("🌐 Request URL: \(url.absoluteString)")
-        print("📤 Request Method: \(method)")
-        print("📤 Request Headers: \(request.allHTTPHeaderFields ?? [:])")
         if let bodyData = request.httpBody,
            let bodyString = String(data: bodyData, encoding: .utf8) {
-            print("📤 Request Body: \(bodyString)")
         }
         
         let (data, response) = try await URLSession.shared.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
-            print("❌ Unknown Response Type")
             throw NetworkError.unknownError
         }
         
-        print("📥 Response Status Code: \(httpResponse.statusCode)")
-        print("📥 Response Headers: \(httpResponse.allHeaderFields)")
-        
         if let responseString = String(data: data, encoding: .utf8) {
-            print("📥 Response Body: \(responseString)")
         }
         
         guard (200...299).contains(httpResponse.statusCode) else {
             do {
                 let errorResponse = try JSONDecoder().decode(ApiErrorResponse.self, from: data)
-                print("❌ Server Error: \(errorResponse.message)")
                 throw NetworkError.serverError(errorResponse.message)
             } catch DecodingError.keyNotFound(_, _),
                     DecodingError.valueNotFound(_, _),
                     DecodingError.typeMismatch(_, _),
                     DecodingError.dataCorrupted(_) {
-                print("❌ Server Error: Status code \(httpResponse.statusCode)")
                 throw NetworkError.serverError("Ошибка сервера: \(httpResponse.statusCode)")
             } catch let error as NetworkError {
                 throw error
@@ -102,10 +91,8 @@ class NetworkManager {
         let decoder = JSONDecoder()
         do {
             let response = try decoder.decode(R.self, from: data)
-            print("✅ Successfully decoded response")
             return response
         } catch {
-            print("❌ Decoding Error: \(error)")
             throw NetworkError.decodingError
         }
     }

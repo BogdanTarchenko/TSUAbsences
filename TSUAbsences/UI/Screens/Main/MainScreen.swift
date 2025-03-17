@@ -19,6 +19,14 @@ struct MainScreen: View {
                     }
             }
             
+            if case .student = viewModel.userRole {
+                StudentRequestsScreen()
+                    .tabItem {
+                        Image(systemName: "doc.text.fill")
+                        Text("Мои заявки")
+                    }
+            }
+            
             ProfileScreen()
                 .tabItem {
                     Image(systemName: "person.fill")

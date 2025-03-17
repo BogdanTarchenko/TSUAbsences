@@ -11,13 +11,14 @@ struct ShortMinioFileDTO: Codable {
     let name: String
 }
 
-struct ShortExtendPassTimeRequestDTO: Codable {
+struct ShortExtendPassTimeRequestDTO: Codable, Identifiable {
     let id: String
     let dateEnd: Date
     let minioFiles: [ShortMinioFileDTO]
+    let isAccepted: Bool
     
     private enum CodingKeys: String, CodingKey {
-        case id, dateEnd, minioFiles
+        case id, dateEnd, minioFiles, isAccepted
     }
     
     init(from decoder: Decoder) throws {
@@ -27,10 +28,20 @@ struct ShortExtendPassTimeRequestDTO: Codable {
         let dateFormatter = ISO8601DateFormatter()
         dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         
-        let dateString = try container.decode(String.self, forKey: .dateEnd)
-        dateEnd = dateFormatter.date(from: dateString) ?? Date()
+        let dateEndString = try container.decode(String.self, forKey: .dateEnd)
+        if let date = dateFormatter.date(from: dateEndString) {
+            dateEnd = date
+        } else {
+            let simpleFormatter = ISO8601DateFormatter()
+            if let date = simpleFormatter.date(from: dateEndString) {
+                dateEnd = date
+            } else {
+                dateEnd = Date()
+            }
+        }
         
         minioFiles = try container.decode([ShortMinioFileDTO].self, forKey: .minioFiles)
+        isAccepted = try container.decode(Bool.self, forKey: .isAccepted)
     }
 }
 
@@ -43,9 +54,10 @@ struct ShortPassRequestDTO: Codable, Identifiable {
     let extendPassTimeRequests: [ShortExtendPassTimeRequestDTO]
     let isAccepted: Bool
     let createTimestamp: Date
+    let message: String?
     
     private enum CodingKeys: String, CodingKey {
-        case id, user, dateStart, dateEnd, minioFiles, extendPassTimeRequests, isAccepted, createTimestamp
+        case id, user, dateStart, dateEnd, minioFiles, extendPassTimeRequests, isAccepted, createTimestamp, message
     }
     
     init(from decoder: Decoder) throws {
@@ -57,17 +69,54 @@ struct ShortPassRequestDTO: Codable, Identifiable {
         dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         
         let dateStartString = try container.decode(String.self, forKey: .dateStart)
-        dateStart = dateFormatter.date(from: dateStartString) ?? Date()
+        if let date = dateFormatter.date(from: dateStartString) {
+            dateStart = date
+        } else {
+            let simpleFormatter = ISO8601DateFormatter()
+            if let date = simpleFormatter.date(from: dateStartString) {
+                dateStart = date
+            } else {
+                dateStart = Date()
+            }
+        }
         
         let dateEndString = try container.decode(String.self, forKey: .dateEnd)
-        dateEnd = dateFormatter.date(from: dateEndString) ?? Date()
+        if let date = dateFormatter.date(from: dateEndString) {
+            dateEnd = date
+        } else {
+            let simpleFormatter = ISO8601DateFormatter()
+            if let date = simpleFormatter.date(from: dateEndString) {
+                dateEnd = date
+            } else {
+                dateEnd = Date()
+            }
+        }
         
         minioFiles = try container.decode([ShortMinioFileDTO].self, forKey: .minioFiles)
         extendPassTimeRequests = try container.decode([ShortExtendPassTimeRequestDTO].self, forKey: .extendPassTimeRequests)
         isAccepted = try container.decode(Bool.self, forKey: .isAccepted)
         
         let createTimestampString = try container.decode(String.self, forKey: .createTimestamp)
-        createTimestamp = dateFormatter.date(from: createTimestampString) ?? Date()
+        if let date = dateFormatter.date(from: createTimestampString) {
+            createTimestamp = date
+        } else {
+            let simpleFormatter = ISO8601DateFormatter()
+            createTimestamp = simpleFormatter.date(from: createTimestampString) ?? Date()
+        }
+        
+        message = try container.decodeIfPresent(String.self, forKey: .message)
+    }
+    
+    init(id: String, user: ShortUserDTO, dateStart: Date, dateEnd: Date, minioFiles: [ShortMinioFileDTO], extendPassTimeRequests: [ShortExtendPassTimeRequestDTO], isAccepted: Bool, createTimestamp: Date, message: String?) {
+        self.id = id
+        self.user = user
+        self.dateStart = dateStart
+        self.dateEnd = dateEnd
+        self.minioFiles = minioFiles
+        self.extendPassTimeRequests = extendPassTimeRequests
+        self.isAccepted = isAccepted
+        self.createTimestamp = createTimestamp
+        self.message = message
     }
 }
 

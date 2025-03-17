@@ -80,7 +80,7 @@ struct RequestRow: View {
             Text("Роль: \(request.user.role.rawValue)")
                 .font(.subheadline)
             
-            Text("Период: \(request.dateStart.formatted(date: .long, time: .omitted)) - \(request.dateEnd.formatted(date: .long, time: .omitted))")
+            Text("Период: \(request.dateStart.formattedPeriod(to: request.dateEnd))")
                 .font(.subheadline)
             
             if !request.minioFiles.isEmpty {
@@ -90,9 +90,26 @@ struct RequestRow: View {
             }
             
             if !request.extendPassTimeRequests.isEmpty {
-                Text("Запросы на продление: \(request.extendPassTimeRequests.count)")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Запросы на продление:")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    ForEach(request.extendPassTimeRequests, id: \.id) { extendRequest in
+                        
+                        HStack {
+                            Text("До \(extendRequest.dateEnd.formattedInRussian())")
+                                .font(.caption)
+                            
+                            Spacer()
+                            
+                            Text(extendRequest.isAccepted ? "Принято" : "На рассмотрении")
+                                .font(.caption)
+                                .foregroundColor(extendRequest.isAccepted ? .green : .orange)
+                        }
+                        .padding(.leading, 8)
+                    }
+                }
             }
         }
         .padding(.vertical, 8)
