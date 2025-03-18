@@ -24,20 +24,23 @@ class StudentRequestsViewModel: ObservableObject {
     @Published var extendRequestMessage = ""
     @Published var extendSelectedImages: [UIImage] = []
     
+    @Published var showError = false
+    @Published var errorMessage: String?
+    
     private let pageSize = 10
     
     enum RequestStatus: String, CaseIterable, Identifiable {
         case all = "Все"
         case accepted = "Принятые"
-        case pending = "На рассмотрении"
+        case rejected = "Отклоненные"
         
         var id: String { self.rawValue }
         
-        var isAcceptedValue: Bool? {
+        var filterValue: Bool? {
             switch self {
             case .all: return nil
             case .accepted: return true
-            case .pending: return false
+            case .rejected: return false
             }
         }
     }
@@ -56,12 +59,17 @@ class StudentRequestsViewModel: ObservableObject {
         
         do {
             let pageable = PageableRequest(page: currentPage, size: pageSize)
+            print("📤 Отправка запроса на получение заявок:")
+            print("📄 Страница: \(currentPage), Размер: \(pageSize)")
+            print("🔍 Статус фильтра: \(selectedStatus.rawValue)")
+            
             let response = try await StudentRequestsService.shared.getMyRequests(
                 pageable: pageable,
-                isAccepted: selectedStatus.isAcceptedValue
+                isAccepted: selectedStatus.filterValue
             )
             
-            // Проверяем на дубликаты
+            print("📥 Получено заявок: \(response.content.count)")
+            
             let newRequests = response.content.filter { newRequest in
                 !requests.contains { existingRequest in
                     existingRequest.id == newRequest.id
@@ -77,8 +85,13 @@ class StudentRequestsViewModel: ObservableObject {
             hasMorePages = !response.last
             currentPage = Int(response.number) + 1
         } catch {
+            print("❌ Ошибка загрузки заявок: \(error)")
+            if let networkError = error as? NetworkError {
+                print("🌐 Сетевая ошибка: \(networkError.localizedDescription)")
+            }
+            
             if forceRefresh {
-                print("Ошибка при обновлении: \(error.localizedDescription)")
+                print("🔄 Ошибка при обновлении: \(error.localizedDescription)")
             } else {
                 self.error = error
             }
@@ -87,10 +100,14 @@ class StudentRequestsViewModel: ObservableObject {
         isLoading = false
     }
     
+    func showErrorAlert(_ message: String) {
+        errorMessage = message
+        showError = true
+    }
+    
     func createRequest() async {
-        // Проверка наличия файлов
         guard !selectedImages.isEmpty else {
-            self.error = NetworkError.serverError("Необходимо прикрепить хотя бы один файл")
+            showErrorAlert("Необходимо прикрепить хотя бы один файл")
             return
         }
         
@@ -106,12 +123,10 @@ class StudentRequestsViewModel: ObservableObject {
                 files: selectedImages
             )
             
-            // Обновляем список заявок
             await loadRequests(forceRefresh: true)
             
             showingCreateForm = false
             
-            // Сбрасываем данные для следующего создания
             newRequestDateStart = Date()
             newRequestDateEnd = Date()
             newRequestMessage = ""
@@ -124,10 +139,9 @@ class StudentRequestsViewModel: ObservableObject {
     }
     
     func deleteRequest(id: String) async {
-        // Проверяем, что заявка существует и не принята
         guard let request = requests.first(where: { $0.id == id }),
-              !request.isAccepted else {
-            self.error = NetworkError.serverError("Можно удалять только заявки, которые еще не рассмотрены")
+              request.isAccepted == nil else {
+            self.error = NetworkError.serverError("Можно удалять только заявки, которые находятся на рассмотрении")
             return
         }
         
@@ -137,7 +151,6 @@ class StudentRequestsViewModel: ObservableObject {
         do {
             try await StudentRequestsService.shared.deleteRequest(id: id)
             
-            // Удаляем заявку из списка
             requests.removeAll { $0.id == id }
         } catch {
             self.error = error
@@ -157,21 +170,25 @@ class StudentRequestsViewModel: ObservableObject {
     }
     
     func prepareForExtend(request: ShortPassRequestDTO) {
+        guard request.isAccepted == true else {
+            self.error = NetworkError.serverError("Продлить можно только принятые заявки")
+            return
+        }
+        
         selectedRequestForExtend = request
-        extendRequestDateEnd = request.dateEnd.addingTimeInterval(7 * 24 * 60 * 60) // +7 дней по умолчанию
+        extendRequestDateEnd = request.dateEnd.addingTimeInterval(7 * 24 * 60 * 60)
         extendRequestMessage = ""
         extendSelectedImages = []
         showingExtendForm = true
     }
     
     func extendRequest() async {
-        guard let request = selectedRequestForExtend else { return }
-        
-        // Проверка наличия файлов
         guard !extendSelectedImages.isEmpty else {
-            self.error = NetworkError.serverError("Необходимо прикрепить хотя бы один файл")
+            showErrorAlert("Необходимо прикрепить хотя бы один файл")
             return
         }
+        
+        guard let request = selectedRequestForExtend else { return }
         
         isLoading = true
         error = nil
@@ -185,12 +202,10 @@ class StudentRequestsViewModel: ObservableObject {
                 files: extendSelectedImages
             )
             
-            // Обновляем список заявок
             await loadRequests(forceRefresh: true)
             
             showingExtendForm = false
             
-            // Сбрасываем данные
             selectedRequestForExtend = nil
             extendRequestDateEnd = Date()
             extendRequestMessage = ""

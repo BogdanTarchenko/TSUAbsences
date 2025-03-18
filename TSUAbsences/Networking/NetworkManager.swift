@@ -88,12 +88,63 @@ class NetworkManager {
             }
         }
         
-        let decoder = JSONDecoder()
         do {
-            let response = try decoder.decode(R.self, from: data)
-            return response
+            let decoder = JSONDecoder()
+            let dateFormatter = ISO8601DateFormatter()
+            dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            decoder.dateDecodingStrategy = .custom { decoder in
+                let container = try decoder.singleValueContainer()
+                let dateString = try container.decode(String.self)
+                
+                print("🕒 Пытаемся декодировать дату: \(dateString)")
+                
+                if let date = dateFormatter.date(from: dateString) {
+                    return date
+                }
+                
+                dateFormatter.formatOptions = [.withInternetDateTime]
+                if let date = dateFormatter.date(from: dateString) {
+                    return date
+                }
+                
+                print("❌ Ошибка декодирования даты: \(dateString)")
+                throw DecodingError.dataCorruptedError(
+                    in: container,
+                    debugDescription: "Не удалось преобразовать строку в дату: \(dateString)"
+                )
+            }
+            
+            do {
+                let decodedResponse = try decoder.decode(R.self, from: data)
+                return decodedResponse
+            } catch {
+                print("❌ Ошибка декодирования JSON:")
+                print("📝 Полученные данные: \(String(data: data, encoding: .utf8) ?? "нет данных")")
+                print("🔍 Детали ошибки: \(error)")
+                
+                if let decodingError = error as? DecodingError {
+                    switch decodingError {
+                    case .keyNotFound(let key, let context):
+                        print("🔑 Отсутствует ключ: \(key.stringValue)")
+                        print("📍 Путь: \(context.codingPath.map { $0.stringValue }.joined(separator: " -> "))")
+                    case .typeMismatch(let type, let context):
+                        print("📋 Несоответствие типа: ожидался \(type)")
+                        print("📍 Путь: \(context.codingPath.map { $0.stringValue }.joined(separator: " -> "))")
+                    case .valueNotFound(let type, let context):
+                        print("❓ Значение не найдено: ожидался \(type)")
+                        print("📍 Путь: \(context.codingPath.map { $0.stringValue }.joined(separator: " -> "))")
+                    case .dataCorrupted(let context):
+                        print("💾 Поврежденные данные: \(context.debugDescription)")
+                    @unknown default:
+                        print("❌ Неизвестная ошибка декодирования")
+                    }
+                }
+                
+                throw NetworkError.decodingError
+            }
         } catch {
-            throw NetworkError.decodingError
+            print("❌ Общая ошибка: \(error)")
+            throw error
         }
     }
-} 
+}

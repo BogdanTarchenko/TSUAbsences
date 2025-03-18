@@ -118,7 +118,7 @@ class StudentRequestsService {
                     dateEnd: dateEnd,
                     minioFiles: [],
                     extendPassTimeRequests: [],
-                    isAccepted: false,
+                    isAccepted: nil,
                     createTimestamp: Date(),
                     message: message
                 )
@@ -139,7 +139,7 @@ class StudentRequestsService {
                     dateEnd: dateEnd,
                     minioFiles: [],
                     extendPassTimeRequests: [],
-                    isAccepted: false,
+                    isAccepted: nil,
                     createTimestamp: Date(),
                     message: message
                 )
@@ -256,7 +256,7 @@ class StudentRequestsService {
                 dateEnd: dateEnd,
                 minioFiles: [],
                 extendPassTimeRequests: [],
-                isAccepted: false,
+                isAccepted: nil,
                 createTimestamp: Date(),
                 message: message
             )

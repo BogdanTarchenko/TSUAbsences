@@ -39,6 +39,10 @@ class RequestsService {
         
         if let isAccepted = filter.isAccepted {
             queryItems.append(URLQueryItem(name: "isAccepted", value: String(isAccepted)))
+        } else {
+            if filter.isAcceptedExplicitlyNull {
+                queryItems.append(URLQueryItem(name: "isAccepted", value: "null"))
+            }
         }
         
         queryItems.append(URLQueryItem(name: "page", value: String(pageable.page)))

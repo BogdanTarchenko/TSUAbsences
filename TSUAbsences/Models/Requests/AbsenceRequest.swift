@@ -15,10 +15,17 @@ struct ShortExtendPassTimeRequestDTO: Codable, Identifiable {
     let id: String
     let dateEnd: Date
     let minioFiles: [ShortMinioFileDTO]
-    let isAccepted: Bool
+    let isAccepted: Bool?
+    let createTimestamp: Date
+    let message: String?
     
     private enum CodingKeys: String, CodingKey {
-        case id, dateEnd, minioFiles, isAccepted
+        case id
+        case dateEnd
+        case minioFiles
+        case isAccepted
+        case createTimestamp
+        case message
     }
     
     init(from decoder: Decoder) throws {
@@ -41,7 +48,17 @@ struct ShortExtendPassTimeRequestDTO: Codable, Identifiable {
         }
         
         minioFiles = try container.decode([ShortMinioFileDTO].self, forKey: .minioFiles)
-        isAccepted = try container.decode(Bool.self, forKey: .isAccepted)
+        isAccepted = try container.decodeIfPresent(Bool.self, forKey: .isAccepted)
+        
+        let createTimestampString = try container.decode(String.self, forKey: .createTimestamp)
+        if let date = dateFormatter.date(from: createTimestampString) {
+            createTimestamp = date
+        } else {
+            let simpleFormatter = ISO8601DateFormatter()
+            createTimestamp = simpleFormatter.date(from: createTimestampString) ?? Date()
+        }
+        
+        message = try container.decodeIfPresent(String.self, forKey: .message)
     }
 }
 
@@ -52,7 +69,7 @@ struct ShortPassRequestDTO: Codable, Identifiable {
     let dateEnd: Date
     let minioFiles: [ShortMinioFileDTO]
     let extendPassTimeRequests: [ShortExtendPassTimeRequestDTO]
-    let isAccepted: Bool
+    let isAccepted: Bool?
     let createTimestamp: Date
     let message: String?
     
@@ -94,7 +111,7 @@ struct ShortPassRequestDTO: Codable, Identifiable {
         
         minioFiles = try container.decode([ShortMinioFileDTO].self, forKey: .minioFiles)
         extendPassTimeRequests = try container.decode([ShortExtendPassTimeRequestDTO].self, forKey: .extendPassTimeRequests)
-        isAccepted = try container.decode(Bool.self, forKey: .isAccepted)
+        isAccepted = try container.decodeIfPresent(Bool.self, forKey: .isAccepted)
         
         let createTimestampString = try container.decode(String.self, forKey: .createTimestamp)
         if let date = dateFormatter.date(from: createTimestampString) {
@@ -107,7 +124,7 @@ struct ShortPassRequestDTO: Codable, Identifiable {
         message = try container.decodeIfPresent(String.self, forKey: .message)
     }
     
-    init(id: String, user: ShortUserDTO, dateStart: Date, dateEnd: Date, minioFiles: [ShortMinioFileDTO], extendPassTimeRequests: [ShortExtendPassTimeRequestDTO], isAccepted: Bool, createTimestamp: Date, message: String?) {
+    init(id: String, user: ShortUserDTO, dateStart: Date, dateEnd: Date, minioFiles: [ShortMinioFileDTO], extendPassTimeRequests: [ShortExtendPassTimeRequestDTO], isAccepted: Bool?, createTimestamp: Date, message: String?) {
         self.id = id
         self.user = user
         self.dateStart = dateStart

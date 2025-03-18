@@ -19,7 +19,7 @@ struct StudentRequestsScreen: View {
                                     viewModel.prepareForExtend(request: request)
                                 })
                                 .swipeActions {
-                                    if !request.isAccepted {
+                                    if request.isAccepted == nil {
                                         Button(role: .destructive) {
                                             Task {
                                                 await viewModel.deleteRequest(id: request.id)
@@ -104,8 +104,10 @@ struct StudentRequestRow: View {
                 Text("Заявка #\(request.id.prefix(8))")
                     .font(.headline)
                 Spacer()
-                Text(request.isAccepted ? "Принято" : "На рассмотрении")
-                    .foregroundColor(request.isAccepted ? .green : .orange)
+                Text(request.isAccepted == nil ? "На рассмотрении" :
+                     (request.isAccepted! ? "Принято" : "Отклонено"))
+                    .foregroundColor(request.isAccepted == nil ? .orange :
+                                    (request.isAccepted! ? .green : .red))
             }
             
             Text("Период: \(request.dateStart.formattedPeriod(to: request.dateEnd))")
@@ -139,16 +141,17 @@ struct StudentRequestRow: View {
                             
                             Spacer()
                             
-                            Text(extendRequest.isAccepted ? "Принято" : "На рассмотрении")
+                            Text(extendRequest.isAccepted == nil ? "На рассмотрении" : (extendRequest.isAccepted! ? "Принято" : "Отклонено"))
                                 .font(.caption)
-                                .foregroundColor(extendRequest.isAccepted ? .green : .orange)
+                                .foregroundColor(extendRequest.isAccepted == nil ? .orange :
+                                (extendRequest.isAccepted! ? .green : .red))
                         }
                         .padding(.leading, 8)
                     }
                 }
             }
             
-            if request.isAccepted {
+            if request.isAccepted == true {
                 Button {
                     onExtend(request)
                 } label: {
@@ -259,23 +262,23 @@ struct CreateRequestView: View {
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
-                        if viewModel.selectedImages.isEmpty {
-                            viewModel.error = NetworkError.serverError("Необходимо прикрепить хотя бы один файл")
-                        } else {
-                            Task {
-                                await viewModel.createRequest()
-                            }
+                        Task {
+                            await viewModel.createRequest()
                         }
                     } label: {
                         if viewModel.isLoading {
                             ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle())
                         } else {
                             Text("Создать")
                         }
                     }
                     .disabled(viewModel.isLoading)
                 }
+            }
+            .alert("Ошибка", isPresented: $viewModel.showError) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(viewModel.errorMessage ?? "")
             }
             .sheet(isPresented: $showingImagePicker) {
                 ImagePicker { image in

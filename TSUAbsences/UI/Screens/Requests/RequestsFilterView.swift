@@ -1,5 +1,19 @@
 import SwiftUI
 
+private enum RequestStatus {
+    case all
+    case accepted
+    case rejected
+    
+    var title: String {
+        switch self {
+        case .all: return "Все"
+        case .accepted: return "Принятые"
+        case .rejected: return "Отклоненные"
+        }
+    }
+}
+
 struct RequestsFilterView: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var filter: RequestsFilter
@@ -7,7 +21,7 @@ struct RequestsFilterView: View {
     @State private var userSearchString: String = ""
     @State private var dateStart: Date?
     @State private var dateEnd: Date?
-    @State private var isAccepted: Bool?
+    @State private var selectedStatus: RequestStatus = .all
     
     private var dateStartBinding: Binding<Date> {
         Binding(
@@ -20,13 +34,6 @@ struct RequestsFilterView: View {
         Binding(
             get: { dateEnd ?? Date() },
             set: { dateEnd = $0 }
-        )
-    }
-    
-    private var isAcceptedBinding: Binding<Bool?> {
-        Binding(
-            get: { isAccepted },
-            set: { isAccepted = $0 }
         )
     }
     
@@ -56,7 +63,12 @@ struct RequestsFilterView: View {
                 userSearchString = filter.userSearchString ?? ""
                 dateStart = filter.dateStart
                 dateEnd = filter.dateEnd
-                isAccepted = filter.isAccepted
+                
+                if let isAccepted = filter.isAccepted {
+                    selectedStatus = isAccepted ? .accepted : .rejected
+                } else {
+                    selectedStatus = .all
+                }
             }
         }
     }
@@ -91,10 +103,10 @@ struct RequestsFilterView: View {
     
     private var statusSection: some View {
         Section("Статус") {
-            Picker("Статус", selection: isAcceptedBinding) {
-                Text("Все").tag(Optional<Bool>.none)
-                Text("Принятые").tag(Optional<Bool>.some(true))
-                Text("На рассмотрении").tag(Optional<Bool>.some(false))
+            Picker("Статус", selection: $selectedStatus) {
+                ForEach([RequestStatus.all, .accepted, .rejected], id: \.self) { status in
+                    Text(status.title).tag(status)
+                }
             }
         }
     }
@@ -103,15 +115,27 @@ struct RequestsFilterView: View {
         userSearchString = ""
         dateStart = nil
         dateEnd = nil
-        isAccepted = nil
+        selectedStatus = .all
     }
     
     private func applyFilters() {
+        let (isAccepted, explicitlyNull): (Bool?, Bool) = {
+            switch selectedStatus {
+            case .all:
+                return (nil, false)
+            case .accepted:
+                return (true, false)
+            case .rejected:
+                return (false, false)
+            }
+        }()
+        
         filter = RequestsFilter(
             userSearchString: userSearchString.isEmpty ? nil : userSearchString,
             dateStart: dateStart,
             dateEnd: dateEnd,
-            isAccepted: isAccepted
+            isAccepted: isAccepted,
+            isAcceptedExplicitlyNull: explicitlyNull
         )
         dismiss()
     }

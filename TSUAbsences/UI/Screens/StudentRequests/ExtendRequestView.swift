@@ -58,7 +58,6 @@ struct ExtendRequestView: View {
                                                     .frame(height: 100)
                                                     .cornerRadius(8)
                                                 
-                                                // Показываем примерный размер файла
                                                 if let size = viewModel.extendSelectedImages[index].jpegData(compressionQuality: 0.5)?.count {
                                                     Text("\(formatFileSize(size))")
                                                         .font(.caption)
@@ -99,23 +98,23 @@ struct ExtendRequestView: View {
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
-                        if viewModel.extendSelectedImages.isEmpty {
-                            viewModel.error = NetworkError.serverError("Необходимо прикрепить хотя бы один файл")
-                        } else {
-                            Task {
-                                await viewModel.extendRequest()
-                            }
+                        Task {
+                            await viewModel.extendRequest()
                         }
                     } label: {
                         if viewModel.isLoading {
                             ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle())
                         } else {
                             Text("Продлить")
                         }
                     }
                     .disabled(viewModel.isLoading)
                 }
+            }
+            .alert("Ошибка", isPresented: $viewModel.showError) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(viewModel.errorMessage ?? "")
             }
             .sheet(isPresented: $showingImagePicker) {
                 ImagePicker { image in
@@ -127,7 +126,6 @@ struct ExtendRequestView: View {
         }
     }
     
-    // Функция для форматирования размера файла
     private func formatFileSize(_ size: Int) -> String {
         let formatter = ByteCountFormatter()
         formatter.allowedUnits = [.useKB, .useMB]

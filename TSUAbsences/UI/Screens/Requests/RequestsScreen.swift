@@ -73,8 +73,10 @@ struct RequestRow: View {
                 Text(request.user.fullName)
                     .font(.headline)
                 Spacer()
-                Text(request.isAccepted ? "Принято" : "На рассмотрении")
-                    .foregroundColor(request.isAccepted ? .green : .orange)
+                Text(request.isAccepted == nil ? "На рассмотрении" :
+                     (request.isAccepted! ? "Принято" : "Отклонено"))
+                    .foregroundColor(request.isAccepted == nil ? .orange :
+                                    (request.isAccepted! ? .green : .red))
             }
             
             Text("Роль: \(request.user.role.rawValue)")
@@ -103,9 +105,10 @@ struct RequestRow: View {
                             
                             Spacer()
                             
-                            Text(extendRequest.isAccepted ? "Принято" : "На рассмотрении")
+                            Text(extendRequest.isAccepted == nil ? "На рассмотрении" : (extendRequest.isAccepted! ? "Принято" : "Отклонено"))
                                 .font(.caption)
-                                .foregroundColor(extendRequest.isAccepted ? .green : .orange)
+                                .foregroundColor(extendRequest.isAccepted == nil ? .orange :
+                                (extendRequest.isAccepted! ? .green : .red))
                         }
                         .padding(.leading, 8)
                     }
