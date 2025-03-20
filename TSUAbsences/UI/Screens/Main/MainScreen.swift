@@ -5,6 +5,12 @@ struct MainScreen: View {
     
     var body: some View {
         TabView {
+            ProfileScreen()
+                .tabItem {
+                    Image(systemName: "person.fill")
+                    Text("Профиль")
+                }
+            
             if case .teacher = viewModel.userRole {
                 RequestsScreen()
                     .tabItem {
@@ -20,12 +26,6 @@ struct MainScreen: View {
                         Text("Мои заявки")
                     }
             }
-            
-            ProfileScreen()
-                .tabItem {
-                    Image(systemName: "person.fill")
-                    Text("Профиль")
-                }
         }
         .accentColor(Color(hex: "346CB0"))
         .onAppear {

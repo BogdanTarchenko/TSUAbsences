@@ -28,7 +28,7 @@ enum NetworkError: LocalizedError {
 
 class NetworkManager {
     static let shared = NetworkManager()
-    let baseURL = "http://83.222.26.250:8080"
+    let baseURL = "http://193.168.49.232:8080"
     
     private init() {}
     
